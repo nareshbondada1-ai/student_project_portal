@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Project Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <span class="brand-icon">&#128218;</span>
+                <span class="brand-text">ProjectPortal</span>
+            </div>
+
+            <!-- Student Real Profile in Sidebar -->
+            <div class="user-brief">
+                <div class="avatar">{{ student.full_name[:2].upper() if student.full_name else 'ST' }}</div>
+                <div class="user-meta">
+                    <h4 class="user-name">{{ student.full_name }}</h4>
+                    <span class="user-roll">Roll: {{ student.roll_no }}</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-menu">
+                <button class="nav-item active" onclick="showSection('overviewSection', this)">
+                    <span class="icon">&#128202;</span> Overview
+                </button>
+                <button class="nav-item" onclick="showSection('myProjectsSection', this)">
+                    <span class="icon">&#128193;</span> My Projects
+                </button>
+                <button class="nav-item" onclick="showSection('uploadSection', this)">
+                    <span class="icon">&#128228;</span> Upload Project
+                </button>
+                <button class="nav-item" onclick="showSection('profileSection', this)">
+                    <span class="icon">&#128100;</span> Profile
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <span class="icon">&#128682;</span> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-panel">
+            
+            <header class="topbar">
+                <div class="topbar-title">
+                    <h2 id="pageHeading">Dashboard Overview</h2>
+                </div>
+                <div class="topbar-actions">
+                    <span class="course-pill">{{ student.course }}</span>
+                </div>
+            </header>
+
+            <div class="content-body">
+                
+                <!-- FLASH MESSAGES -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-messages">
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">
+                                    <span>{{ message }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <!-- 1. OVERVIEW SECTION -->
+                <section id="overviewSection" class="content-section active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-blue">&#128196;</div>
+                            <div class="stat-info">
+                                <h3>{{ total }}</h3>
+                                <p>Total Submissions</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-green">&#9989;</div>
+                            <div class="stat-info">
+                                <h3>{{ approved }}</h3>
+                                <p>Approved</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-yellow">&#9203;</div>
+                            <div class="stat-info">
+                                <h3>{{ pending }}</h3>
+                                <p>Pending Review</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-purple">&#11088;</div>
+                            <div class="stat-info">
+                                <h3>{{ avg_rating }} / 5</h3>
+                                <p>Average Rating</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-card mt-4">
+                        <div class="panel-header">
+                            <h3>Recent Submissions</h3>
+                            <button class="btn btn-sm btn-outline" onclick="showSection('uploadSection')">+ New Project</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Project Title</th>
+                                        <th>Tech Stack</th>
+                                        <th>Submission Date</th>
+                                        <th>Status</th>
+                                        <th>Rating</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if projects %}
+                                        {% for p in projects %}
+                                            <tr>
+                                                <td><strong>{{ p.title }}</strong></td>
+                                                <td>{{ p.tech_stack }}</td>
+                                                <td>{{ p.submitted_at.strftime('%b %d, %Y') if p.submitted_at else 'Recent' }}</td>
+                                                <td><span class="status-badge status-{{ p.status | lower }}">{{ p.status }}</span></td>
+                                                <td>
+                                                    {% if p.rating %}
+                                                        <span class="rating-badge">&#9733; {{ p.rating }}</span>
+                                                    {% else %}
+                                                        <span class="text-muted">Awaiting</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="5" class="text-muted" style="text-align: center; padding: 2rem;">No projects submitted yet. Click "+ New Project" to submit your first project!</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. UPLOAD PROJECT -->
+                <section id="uploadSection" class="content-section">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Submit a New Project</h3>
+                                <p class="text-muted">Provide your project documentation and code link for faculty review.</p>
+                            </div>
+                        </div>
+
+                        <form id="projectUploadForm" action="/student/upload-project" method="POST" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="projectTitle">Project Title <span class="required">*</span></label>
+                                <input type="text" id="projectTitle" name="title" class="form-control" placeholder="e.g. Smart Campus Management System" required>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col">
+                                    <label for="techStack">Technologies Used <span class="required">*</span></label>
+                                    <input type="text" id="techStack" name="tech_stack" class="form-control" placeholder="e.g. Python, Flask, Oracle SQL, HTML/CSS" required>
+                                </div>
+                                <div class="form-group col">
+                                    <label for="projectLink">GitHub / Live Project URL</label>
+                                    <input type="url" id="projectLink" name="project_link" class="form-control" placeholder="https://github.com/username/project">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="projectDesc">Project Abstract / Description <span class="required">*</span></label>
+                                <textarea id="projectDesc" name="description" class="form-control" rows="5" placeholder="Describe problem statement, features, architecture..." required></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="projectDoc">Project Synopsis / Report (PDF / ZIP) <span class="required">*</span></label>
+                                <input type="file" id="projectDoc" name="document" class="form-control file-input" accept=".pdf,.zip,.doc,.docx" required>
+                                <small class="text-muted">Max file size: 15MB. Accepted formats: PDF, ZIP, DOCX</small>
+                            </div>
+
+                            <div class="form-actions-right">
+                                <button type="reset" class="btn btn-secondary">Clear</button>
+                                <button type="submit" class="btn btn-primary">&#128228; Submit for Approval</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- 3. MY PROJECTS -->
+                <section id="myProjectsSection" class="content-section">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <h3>My Submitted Projects</h3>
+                        </div>
+
+                        <div class="projects-container">
+                            {% if projects %}
+                                {% for p in projects %}
+                                    <div class="project-detail-card card-{{ p.status | lower }}">
+                                        <div class="project-card-header">
+                                            <div>
+                                                <h4>{{ p.title }}</h4>
+                                                <span class="project-date">Submitted: {{ p.submitted_at.strftime('%b %d, %Y') if p.submitted_at else 'Recent' }}</span>
+                                            </div>
+                                            <span class="status-badge status-{{ p.status | lower }}">{{ p.status }}</span>
+                                        </div>
+                                        <p class="project-text">{{ p.description }}</p>
+                                        <div class="tech-tags">
+                                            <span class="tag">{{ p.tech_stack }}</span>
+                                        </div>
+                                        
+                                        {% if p.status == 'APPROVED' or p.status == 'REJECTED' %}
+                                            <div class="review-box">
+                                                <div class="review-header">
+                                                    <strong>Faculty Evaluation:</strong>
+                                                    <span class="rating-stars">&#9733; {{ p.rating }} / 5.0</span>
+                                                </div>
+                                                <p class="review-feedback">"{{ p.feedback }}" - <em>{{ p.reviewer_name or 'Faculty Evaluator' }}</em></p>
+                                            </div>
+                                        {% else %}
+                                            <div class="review-box pending-box">
+                                                <p class="text-muted">&#9203; Awaiting faculty review. Feedback and ratings will appear here once reviewed.</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted" style="text-align: center; padding: 2rem;">No projects submitted yet.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. PROFILE SECTION -->
+                <section id="profileSection" class="content-section">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <h3>Student Profile Details</h3>
+                        </div>
+
+                        <div class="profile-layout">
+                            <div class="profile-card-left">
+                                <div class="profile-avatar-large">{{ student.full_name[:2].upper() if student.full_name else 'ST' }}</div>
+                                <h3>{{ student.full_name }}</h3>
+                                <p class="text-muted">Roll: {{ student.roll_no }}</p>
+                                <span class="badge-role">Student</span>
+                            </div>
+
+                            <div class="profile-card-right">
+                                <div class="profile-details-grid">
+                                    <div class="profile-field">
+                                        <label>User ID (Username)</label>
+                                        <p>{{ student.username }}</p>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Email Address</label>
+                                        <p>{{ student.email }}</p>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Phone Number</label>
+                                        <p>{{ student.phone_no }}</p>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Course / Branch</label>
+                                        <p>{{ student.course }}</p>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Date of Birth</label>
+                                        <p>{{ student.dob.strftime('%d %b %Y') if student.dob else 'N/A' }}</p>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Gender</label>
+                                        <p>{{ student.gender }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

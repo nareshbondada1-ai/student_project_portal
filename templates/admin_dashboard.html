@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Dashboard - Student Project Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <span class="brand-icon">&#127891;</span>
+                <span class="brand-text">Faculty Portal</span>
+            </div>
+
+            <!-- Faculty Real Profile in Sidebar -->
+            <div class="user-brief">
+                <div class="avatar admin-avatar">{{ admin.full_name[:2].upper() if admin.full_name else 'AD' }}</div>
+                <div class="user-meta">
+                    <h4 class="user-name">{{ admin.full_name }}</h4>
+                    <span class="user-roll">Dept: {{ admin.course or 'Faculty' }}</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-menu">
+                <button class="nav-item active" onclick="showSection('overviewSection', this)">
+                    <span class="icon">&#128202;</span> Overview
+                </button>
+                <button class="nav-item" onclick="showSection('pendingReviewsSection', this)">
+                    <span class="icon">&#128221;</span> Review Projects
+                    <span class="badge-count" id="pendingCountBadge">{{ pending_projects|length }}</span>
+                </button>
+                <button class="nav-item" onclick="showSection('evaluatedSection', this)">
+                    <span class="icon">&#9989;</span> Evaluated History
+                </button>
+                <button class="nav-item" onclick="showSection('profileSection', this)">
+                    <span class="icon">&#128100;</span> Faculty Profile
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <span class="icon">&#128682;</span> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN PANEL -->
+        <main class="main-panel">
+            
+            <header class="topbar">
+                <div class="topbar-title">
+                    <h2 id="pageHeading">Faculty Dashboard</h2>
+                </div>
+                <div class="topbar-actions">
+                    <span class="faculty-badge">&#127891; Project Evaluator</span>
+                    <span class="course-pill">{{ admin.course or 'Academic Faculty' }}</span>
+                </div>
+            </header>
+
+            <div class="content-body">
+                
+                <!-- FLASH MESSAGES -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-messages">
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">
+                                    <span>{{ message }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <!-- 1. OVERVIEW SECTION -->
+                <section id="overviewSection" class="content-section active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-yellow">&#9203;</div>
+                            <div class="stat-info">
+                                <h3>{{ pending_projects|length }}</h3>
+                                <p>Pending Reviews</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-green">&#9989;</div>
+                            <div class="stat-info">
+                                <h3>{{ approved_count }}</h3>
+                                <p>Projects Approved</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-blue">&#128101;</div>
+                            <div class="stat-info">
+                                <h3>{{ total_submissions }}</h3>
+                                <p>Total Submissions</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-purple">&#11088;</div>
+                            <div class="stat-info">
+                                <h3>{{ avg_awarded }} / 5</h3>
+                                <p>Avg. Grade Awarded</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-card mt-4">
+                        <div class="panel-header">
+                            <h3>Submissions Awaiting Review</h3>
+                            <button class="btn btn-sm btn-primary" onclick="showSection('pendingReviewsSection')">View All</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Roll Number</th>
+                                        <th>Project Title</th>
+                                        <th>Submitted On</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if pending_projects %}
+                                        {% for p in pending_projects %}
+                                            <tr>
+                                                <td><strong>{{ p.student_name }}</strong></td>
+                                                <td>{{ p.roll_no }}</td>
+                                                <td>{{ p.title }}</td>
+                                                <td>{{ p.submitted_at.strftime('%b %d, %Y') if p.submitted_at else 'Recent' }}</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-primary" onclick="openReviewModal('{{ p.project_id }}', '{{ p.title }}', '{{ p.student_name }}', '{{ p.roll_no }}', '{{ p.tech_stack }}', '{{ p.description }}')">
+                                                        Review &amp; Rate
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="5" class="text-muted" style="text-align: center; padding: 2rem;">No pending submissions right now. All caught up!</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. PENDING REVIEWS & RATING -->
+                <section id="pendingReviewsSection" class="content-section">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Review Student Submissions</h3>
+                                <p class="text-muted">Inspect documentation, download reports, and provide official ratings and feedback.</p>
+                            </div>
+                        </div>
+
+                        <div class="projects-container">
+                            {% if pending_projects %}
+                                {% for p in pending_projects %}
+                                    <div class="project-detail-card card-pending">
+                                        <div class="project-card-header">
+                                            <div>
+                                                <h4>{{ p.title }}</h4>
+                                                <p class="student-subtitle">Submitted by: <strong>{{ p.student_name }}</strong> (Roll No: <code>{{ p.roll_no }}</code>) &bull; <em>{{ p.submitted_at.strftime('%b %d, %Y') if p.submitted_at else 'Recent' }}</em></p>
+                                            </div>
+                                            <span class="status-badge status-pending">&#9203; Pending Review</span>
+                                        </div>
+                                        <p class="project-text">{{ p.description }}</p>
+                                        <div class="tech-tags">
+                                            <span class="tag">{{ p.tech_stack }}</span>
+                                        </div>
+                                        <div class="project-links-bar">
+                                            {% if p.project_link %}
+                                                <a href="{{ p.project_link }}" target="_blank" class="btn-link">&#128279; View Project URL</a>
+                                            {% endif %}
+                                        </div>
+                                        <div class="action-footer">
+                                            <button class="btn btn-primary" onclick="openReviewModal('{{ p.project_id }}', '{{ p.title }}', '{{ p.student_name }}', '{{ p.roll_no }}', '{{ p.tech_stack }}', '{{ p.description }}')">
+                                                &#9998; Evaluate &amp; Assign Rating
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted" style="text-align: center; padding: 2rem;">No submissions waiting for review.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. EVALUATED HISTORY -->
+                <section id="evaluatedSection" class="content-section">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Previously Evaluated Projects</h3>
+                                <p class="text-muted">Record of all approved or rejected projects along with your remarks.</p>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Project Title</th>
+                                        <th>Student</th>
+                                        <th>Decision</th>
+                                        <th>Rating Awarded</th>
+                                        <th>Feedback Given</th>
+                                        <th>Evaluated Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if evaluated_projects %}
+                                        {% for p in evaluated_projects %}
+                                            <tr>
+                                                <td><strong>{{ p.title }}</strong></td>
+                                                <td>{{ p.student_name }} ({{ p.roll_no }})</td>
+                                                <td><span class="status-badge status-{{ p.status | lower }}">{{ p.status }}</span></td>
+                                                <td><span class="rating-badge">&#9733; {{ p.rating }} / 5.0</span></td>
+                                                <td class="feedback-text">"{{ p.feedback }}"</td>
+                                                <td>{{ p.reviewed_at.strftime('%b %d, %Y') if p.reviewed_at else 'Recent' }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="6" class="text-muted" style="text-align: center; padding: 2rem;">No evaluated projects yet.</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. PROFILE SECTION -->
+                <section id="profileSection" class="content-section">
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <h3>Faculty Profile Details</h3>
+                        </div>
+
+                        <div class="profile-layout">
+                            <div class="profile-card-left">
+                                <div class="profile-avatar-large admin-avatar">{{ admin.full_name[:2].upper() if admin.full_name else 'AD' }}</div>
+                                <h3>{{ admin.full_name }}</h3>
+                                <p class="text-muted">Username: {{ admin.username }}</p>
+                                <span class="badge-role">Faculty Evaluator</span>
+                            </div>
+
+                            <div class="profile-card-right">
+                                <div class="profile-details-grid">
+                                    <div class="profile-field">
+                                        <label>User ID (Username)</label>
+                                        <p>{{ admin.username }}</p>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Official Email</label>
+                                        <p>{{ admin.email }}</p>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Department / Course</label>
+                                        <p>{{ admin.course or 'Computer Science' }}</p>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Phone Number</label>
+                                        <p>{{ admin.phone_no }}</p>
+                                    </div>
+                                    <div class="profile-field">
+                                        <label>Gender</label>
+                                        <p>{{ admin.gender }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- REVIEW & RATING MODAL (POSTS TO FLASK) -->
+    <div id="reviewModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Evaluate Project Submission</h3>
+                <button class="modal-close-btn" onclick="closeReviewModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="modal-project-info">
+                    <h4 id="modalProjectTitle">Project Title</h4>
+                    <p class="text-muted">Student: <strong id="modalStudentName"></strong> (Roll: <code id="modalStudentRoll"></code>)</p>
+                    <p class="modal-desc" id="modalProjectDesc"></p>
+                    <p><strong>Stack:</strong> <span id="modalProjectStack"></span></p>
+                </div>
+
+                <form id="evaluationForm" action="/admin/evaluate" method="POST">
+                    <input type="hidden" name="project_id" id="modalProjectId">
+
+                    <div class="form-group">
+                        <label>Approval Decision <span class="required">*</span></label>
+                        <div class="decision-radios">
+                            <label class="radio-card radio-approve">
+                                <input type="radio" name="status" value="APPROVED" checked>
+                                <span>&#9989; Approve Project</span>
+                            </label>
+                            <label class="radio-card radio-reject">
+                                <input type="radio" name="status" value="REJECTED">
+                                <span>&#10060; Reject / Changes Requested</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ratingInput">Award Rating (1.0 to 5.0) <span class="required">*</span></label>
+                        <div class="rating-input-row">
+                            <input type="number" id="ratingInput" name="rating" class="form-control" min="1.0" max="5.0" step="0.1" value="4.5" required>
+                            <span class="rating-max-label">/ 5.0 &#11088;</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="feedbackInput">Faculty Remarks &amp; Feedback <span class="required">*</span></label>
+                        <textarea id="feedbackInput" name="feedback" class="form-control" rows="4" placeholder="Write feedback, suggestions, or areas of improvement..." required></textarea>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeReviewModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">&#10004; Submit Evaluation</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>

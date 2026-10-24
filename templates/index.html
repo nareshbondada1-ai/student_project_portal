@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Project Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">&#128218;</span>
+                <span class="logo-text">Student Project Portal</span>
+            </div>
+            <div class="nav-links">
+                <a href="#about" class="nav-link">About</a>
+                <a href="#guidelines" class="nav-link">Guidelines</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-wrapper">
+        <div class="portal-container">
+            
+            <!-- Left Info Panel -->
+            <div class="info-section">
+                <h1>Manage &amp; Review Academic Projects</h1>
+                <p>A unified platform for students to submit projects and professors to review, approve, and rate academic submissions seamlessly.</p>
+                <ul class="feature-list">
+                    <li>&#10004; Submit and track project approvals in real-time</li>
+                    <li>&#10004; Faculty grading, ratings &amp; feedback</li>
+                    <li>&#10004; Secure role-based portal for Students &amp; Faculty</li>
+                </ul>
+            </div>
+
+            <!-- Right Authentication Card -->
+            <div class="auth-card">
+                
+                <!-- FLASH ERROR / SUCCESS MESSAGES -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-messages" style="margin-bottom: 1rem;">
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}" style="padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 0.5rem; background: #fee2e2; color: #991b1b; font-size: 0.9rem; font-weight: 500;">
+                                    <span>&#9888; {{ message }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Main Tabs: Login vs Register -->
+                <div class="main-tabs">
+                    <button type="button" class="main-tab-btn active" id="tabLoginBtn" onclick="switchMainTab('login')">Login</button>
+                    <button type="button" class="main-tab-btn" id="tabRegisterBtn" onclick="switchMainTab('register')">Register</button>
+                </div>
+
+                <!-- ================= LOGIN SECTION ================= -->
+                <div id="loginSection" class="form-section active">
+                    
+                    <!-- Sub-Tabs: Student vs Admin Login -->
+                    <div class="role-tabs">
+                        <button type="button" class="role-tab-btn active" id="studentLoginTab" onclick="switchLoginRole('STUDENT')">Student Login</button>
+                        <button type="button" class="role-tab-btn" id="adminLoginTab" onclick="switchLoginRole('ADMIN')">Admin / Professor</button>
+                    </div>
+
+                    <form id="loginForm" action="/login" method="POST">
+                        <input type="hidden" name="role" id="loginRole" value="STUDENT">
+
+                        <div class="form-group">
+                            <label for="loginIdentifier">Username or Email</label>
+                            <input type="text" id="loginIdentifier" name="identifier" class="form-control" placeholder="Enter username or email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" id="loginPassword" name="password" class="form-control" placeholder="Enter password" required>
+                        </div>
+
+                        <div class="form-actions">
+                            <a href="#" class="forgot-link">Forgot Password?</a>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">Login as Student</button>
+                    </form>
+                </div>
+
+                <!-- ================= REGISTRATION SECTION ================= -->
+                <div id="registerSection" class="form-section">
+                    <form id="registerForm" action="/register" method="POST">
+                        
+                        <div class="form-group">
+                            <label>Register As</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="role" value="STUDENT" checked onchange="toggleStudentFields(this.value)"> Student
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="role" value="ADMIN" onchange="toggleStudentFields(this.value)"> Admin / Professor
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col">
+                                <label for="regFullName">Full Name <span class="required">*</span></label>
+                                <input type="text" id="regFullName" name="full_name" class="form-control" placeholder="John Doe" required>
+                            </div>
+                            <div class="form-group col">
+                                <label for="regUserId">User ID (Username) <span class="required">*</span></label>
+                                <input type="text" id="regUserId" name="username" class="form-control" placeholder="johndoe12" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col">
+                                <label for="regEmail">Email <span class="required">*</span></label>
+                                <input type="email" id="regEmail" name="email" class="form-control" placeholder="john@example.com" required>
+                            </div>
+                            <div class="form-group col">
+                                <label for="regPhone">Phone Number <span class="required">*</span></label>
+                                <input type="tel" id="regPhone" name="phone_no" class="form-control" placeholder="9876543210" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="regPassword">Set Password <span class="required">*</span></label>
+                            <input type="password" id="regPassword" name="password" class="form-control" placeholder="Minimum 6 characters" minlength="6" required>
+                        </div>
+
+                        <!-- Student-Only Field: Roll Number -->
+                        <div class="form-group" id="rollNoGroup">
+                            <label for="regRollNo">Student Roll No <span class="required">*</span></label>
+                            <input type="text" id="regRollNo" name="roll_no" class="form-control" placeholder="e.g. 21BCE1024" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col">
+                                <label for="regCourse" id="courseLabel">Course <span class="required">*</span></label>
+                                <input type="text" id="regCourse" name="course" class="form-control" placeholder="e.g. B.Tech CSE" required>
+                            </div>
+                            <div class="form-group col">
+                                <label for="regDob">Date of Birth <span class="required">*</span></label>
+                                <input type="date" id="regDob" name="dob" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="regGender">Gender <span class="required">*</span></label>
+                            <select id="regGender" name="gender" class="form-control" required>
+                                <option value="" disabled selected>Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="terms_accepted" value="Y" required>
+                                <span>I agree to the <a href="#">Terms &amp; Conditions</a></span>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
