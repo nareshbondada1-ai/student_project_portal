@@ -68,3 +68,31 @@ function togglePasswordVisibility(inputId, btn) {
         btn.innerHTML = "&#128065;"; // Open eye
     }
 }
+// Automatically remove alert notifications when user starts typing again or after 4 seconds
+document.addEventListener("DOMContentLoaded", () => {
+    
+    // 1. Hide alert as soon as the user starts typing in any field
+    const allInputs = document.querySelectorAll("input");
+    allInputs.forEach(input => {
+        input.addEventListener("input", () => {
+            const alerts = document.querySelectorAll(".alert");
+            alerts.forEach(alert => {
+                alert.style.transition = "opacity 0.25s ease, transform 0.25s ease";
+                alert.style.opacity = "0";
+                alert.style.transform = "translateY(-6px)";
+                setTimeout(() => alert.remove(), 250);
+            });
+        });
+    });
+
+    // 2. Auto-dismiss alert after 4 seconds if not dismissed
+    setTimeout(() => {
+        const alerts = document.querySelectorAll(".alert");
+        alerts.forEach(alert => {
+            alert.style.transition = "opacity 0.4s ease, transform 0.4s ease";
+            alert.style.opacity = "0";
+            alert.style.transform = "translateY(-6px)";
+            setTimeout(() => alert.remove(), 400);
+        });
+    }, 4000);
+});
