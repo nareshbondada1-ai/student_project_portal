@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
@@ -257,6 +257,11 @@ def evaluate_project():
     flash("Project evaluation and rating saved successfully!", "success")
     return redirect(url_for("admin_dashboard"))
 
-
+@app.route("/download/<path:filename>")
+def download_file(filename):
+    if "user_id" not in session:
+        flash("Please log in to download files.", "warning")
+        return redirect(url_for("home"))
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename, as_attachment=True)
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

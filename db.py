@@ -5,14 +5,12 @@ from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 
 env_path = Path(__file__).resolve().parent / ".env"
-load_dotenv(dotenv_path=env_path)
-
-DATABASE_URL = os.getenv("DATABASE_URL")
+load_dotenv(dotenv_path=env_path, override=True)
 
 def get_db_connection():
     """Establish connection to PostgreSQL Cloud Database."""
-    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
-
+    db_url = os.getenv("DATABASE_URL")
+    return psycopg2.connect(db_url, cursor_factory=RealDictCursor)
 def query_all(sql, params=None):
     """Execute SELECT and return rows as dictionary list."""
     conn = get_db_connection()

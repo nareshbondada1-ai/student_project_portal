@@ -1,33 +1,54 @@
-function openReviewModal(projectId, title, student, roll, stack, desc) {
-    document.getElementById('modalProjectId').value = projectId;
-    // ... rest of your code
-    // Open Review Modal with Project Details
-// Open Review Modal with Project Details & Project ID
-function openReviewModal(projectId, title, student, roll, stack, desc) {
-    document.getElementById('modalProjectId').value = projectId;
-    document.getElementById('modalProjectTitle').textContent = title;
-    document.getElementById('modalStudentName').textContent = student;
-    document.getElementById('modalStudentRoll').textContent = roll;
-    document.getElementById('modalProjectStack').textContent = stack;
-    document.getElementById('modalProjectDesc').textContent = desc;
+// =========================================================
+// FACULTY DASHBOARD - MODAL & LIVE SEARCH CONTROLLER
+// =========================================================
 
-    document.getElementById('reviewModal').classList.add('active');
+// Open Faculty Review Modal with Project Details & Hidden Project ID
+function openReviewModal(projectId, title, student, roll, stack, desc) {
+    const modal = document.getElementById('reviewModal');
+    if (!modal) return;
+
+    document.getElementById('modalProjectId').value = projectId || '';
+    document.getElementById('modalProjectTitle').textContent = title || 'Project Title';
+    document.getElementById('modalStudentName').textContent = student || 'Unknown Student';
+    document.getElementById('modalStudentRoll').textContent = roll || 'N/A';
+    document.getElementById('modalProjectStack').textContent = stack || 'Not Specified';
+    document.getElementById('modalProjectDesc').textContent = desc || 'No description provided.';
+
+    modal.classList.add('active');
 }
 
 // Close Review Modal
 function closeReviewModal() {
-    document.getElementById('reviewModal').classList.remove('active');
+    const modal = document.getElementById('reviewModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
 }
 
-// Handle Form Submission (Mock simulation for frontend testing)
-function handleEvaluationSubmit(event) {
-    event.preventDefault();
-    const rating = document.getElementById('ratingInput').value;
-    const feedback = document.getElementById('feedbackInput').value;
-    const status = document.querySelector('input[name="status"]:checked').value;
+// Close modal when clicking on the dark backdrop
+window.addEventListener('click', (event) => {
+    const modal = document.getElementById('reviewModal');
+    if (event.target === modal) {
+        closeReviewModal();
+    }
+});
 
-    alert(`Evaluation Saved Successfully!\n\nStatus: ${status}\nRating: ${rating}/5.0\nFeedback: ${feedback}`);
-
-    closeReviewModal();
-    // In real app, this will submit to Python Flask
-}
+// Live Instant Search for Pending Submissions
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('facultySearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const projectCards = document.querySelectorAll('#pendingReviewsSection .project-detail-card');
+            
+            projectCards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+});

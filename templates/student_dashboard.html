@@ -3,52 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard - Project Portal</title>
+    <title>Student Dashboard - Academic Portal</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
 <body>
 
     <div class="dashboard-layout">
         
-        <!-- SIDEBAR -->
+        <!-- ================= SIDEBAR ================= -->
         <aside class="sidebar">
             <div class="sidebar-brand">
-                <span class="brand-icon">&#128218;</span>
-                <span class="brand-text">ProjectPortal</span>
+                <span class="brand-badge">&#9878;</span>
+                <span class="brand-text">Academic<span>Portal</span></span>
             </div>
 
-            <!-- Student Real Profile in Sidebar -->
+            <!-- Student Profile Summary -->
             <div class="user-brief">
                 <div class="avatar">{{ student.full_name[:2].upper() if student.full_name else 'ST' }}</div>
                 <div class="user-meta">
-                    <h4 class="user-name">{{ student.full_name }}</h4>
+                    <h4>{{ student.full_name }}</h4>
                     <span class="user-roll">Roll: {{ student.roll_no }}</span>
                 </div>
             </div>
 
+            <!-- Navigation Links -->
             <nav class="sidebar-menu">
                 <button class="nav-item active" onclick="showSection('overviewSection', this)">
-                    <span class="icon">&#128202;</span> Overview
+                    <span>&#128202;</span> Dashboard Overview
                 </button>
                 <button class="nav-item" onclick="showSection('myProjectsSection', this)">
-                    <span class="icon">&#128193;</span> My Projects
+                    <span>&#128193;</span> My Submissions
                 </button>
                 <button class="nav-item" onclick="showSection('uploadSection', this)">
-                    <span class="icon">&#128228;</span> Upload Project
+                    <span>&#128228;</span> Submit New Project
                 </button>
                 <button class="nav-item" onclick="showSection('profileSection', this)">
-                    <span class="icon">&#128100;</span> Profile
+                    <span>&#128100;</span> Student Profile
                 </button>
             </nav>
 
             <div class="sidebar-footer">
                 <a href="{{ url_for('logout') }}" class="logout-btn">
-                    <span class="icon">&#128682;</span> Logout
+                    <span>&#128682;</span> Sign Out
                 </a>
             </div>
         </aside>
 
-        <!-- MAIN CONTENT -->
+        <!-- ================= MAIN PANEL ================= -->
         <main class="main-panel">
             
             <header class="topbar">
@@ -56,62 +57,64 @@
                     <h2 id="pageHeading">Dashboard Overview</h2>
                 </div>
                 <div class="topbar-actions">
-                    <span class="course-pill">{{ student.course }}</span>
+                    <span class="course-pill">&#127891; {{ student.course }}</span>
                 </div>
             </header>
 
             <div class="content-body">
                 
-                <!-- FLASH MESSAGES -->
+                <!-- FLASH ERROR / SUCCESS MESSAGES -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
-                        <div class="flash-messages">
+                        <div class="flash-messages" style="margin-bottom: 1.5rem;">
                             {% for category, message in messages %}
-                                <div class="alert alert-{{ category }}">
-                                    <span>{{ message }}</span>
+                                <div class="alert alert-{{ category }}" style="padding: 0.9rem 1.2rem; border-radius: 6px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7; font-weight: 500;">
+                                    <span>&#9888; {{ message }}</span>
                                 </div>
                             {% endfor %}
                         </div>
                     {% endif %}
                 {% endwith %}
 
-                <!-- 1. OVERVIEW SECTION -->
+                <!-- ================= 1. OVERVIEW SECTION ================= -->
                 <section id="overviewSection" class="content-section active">
+                    <!-- KPI Cards -->
                     <div class="stats-grid">
                         <div class="stat-card">
-                            <div class="stat-icon bg-blue">&#128196;</div>
+                            <div class="stat-icon icon-blue">&#128196;</div>
                             <div class="stat-info">
                                 <h3>{{ total }}</h3>
                                 <p>Total Submissions</p>
                             </div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon bg-green">&#9989;</div>
+                            <div class="stat-icon icon-green">&#9989;</div>
                             <div class="stat-info">
                                 <h3>{{ approved }}</h3>
-                                <p>Approved</p>
+                                <p>Approved Projects</p>
                             </div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon bg-yellow">&#9203;</div>
+                            <div class="stat-icon icon-gold">&#9203;</div>
                             <div class="stat-info">
                                 <h3>{{ pending }}</h3>
-                                <p>Pending Review</p>
+                                <p>Under Review</p>
                             </div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon bg-purple">&#11088;</div>
+                            <div class="stat-icon icon-purple">&#11088;</div>
                             <div class="stat-info">
-                                <h3>{{ avg_rating }} / 5</h3>
-                                <p>Average Rating</p>
+                                <h3>{{ avg_rating }} / 5.0</h3>
+                                <p>Cumulative Rating</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="panel-card mt-4">
+                    <!-- Recent Projects Table -->
+                    <div class="panel-card">
                         <div class="panel-header">
-                            <h3>Recent Submissions</h3>
-                            <button class="btn btn-sm btn-outline" onclick="showSection('uploadSection')">+ New Project</button>
+                            <h3>Academic Project Submissions</h3>
+                            <button class="btn btn-sm btn-outline" onclick="showSection('uploadSection')">+ New Submission</button>
                         </div>
                         <div class="table-responsive">
                             <table class="data-table">
@@ -121,29 +124,33 @@
                                         <th>Tech Stack</th>
                                         <th>Submission Date</th>
                                         <th>Status</th>
-                                        <th>Rating</th>
+                                        <th>Faculty Score</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% if projects %}
                                         {% for p in projects %}
                                             <tr>
-                                                <td><strong>{{ p.title }}</strong></td>
-                                                <td>{{ p.tech_stack }}</td>
+                                                <td><strong style="color: #fff;">{{ p.title }}</strong></td>
+                                                <td><span class="tag">{{ p.tech_stack }}</span></td>
                                                 <td>{{ p.submitted_at.strftime('%b %d, %Y') if p.submitted_at else 'Recent' }}</td>
-                                                <td><span class="status-badge status-{{ p.status | lower }}">{{ p.status }}</span></td>
+                                                <td>
+                                                    <span class="status-badge status-{{ p.status | lower }}">{{ p.status }}</span>
+                                                </td>
                                                 <td>
                                                     {% if p.rating %}
-                                                        <span class="rating-badge">&#9733; {{ p.rating }}</span>
+                                                        <span class="rating-badge">&#9733; {{ p.rating }} / 5.0</span>
                                                     {% else %}
-                                                        <span class="text-muted">Awaiting</span>
+                                                        <span class="text-muted">&#9203; Awaiting</span>
                                                     {% endif %}
                                                 </td>
                                             </tr>
                                         {% endfor %}
                                     {% else %}
                                         <tr>
-                                            <td colspan="5" class="text-muted" style="text-align: center; padding: 2rem;">No projects submitted yet. Click "+ New Project" to submit your first project!</td>
+                                            <td colspan="5" class="text-muted" style="text-align: center; padding: 3rem;">
+                                                No project submissions recorded. Click <strong>"+ New Submission"</strong> to submit your first project report.
+                                            </td>
                                         </tr>
                                     {% endif %}
                                 </tbody>
@@ -152,57 +159,57 @@
                     </div>
                 </section>
 
-                <!-- 2. UPLOAD PROJECT -->
+                <!-- ================= 2. UPLOAD NEW PROJECT ================= -->
                 <section id="uploadSection" class="content-section">
                     <div class="panel-card">
                         <div class="panel-header">
                             <div>
-                                <h3>Submit a New Project</h3>
-                                <p class="text-muted">Provide your project documentation and code link for faculty review.</p>
+                                <h3>Submit Project for Faculty Review</h3>
+                                <p class="text-muted" style="margin-top: 0.3rem;">Upload your project documentation, code repository link, and abstract for grading.</p>
                             </div>
                         </div>
 
                         <form id="projectUploadForm" action="/student/upload-project" method="POST" enctype="multipart/form-data">
                             <div class="form-group">
                                 <label for="projectTitle">Project Title <span class="required">*</span></label>
-                                <input type="text" id="projectTitle" name="title" class="form-control" placeholder="e.g. Smart Campus Management System" required>
+                                <input type="text" id="projectTitle" name="title" class="form-control" placeholder="e.g. Distributed Ledger for Electronic Medical Records" required>
                             </div>
 
                             <div class="form-row">
                                 <div class="form-group col">
-                                    <label for="techStack">Technologies Used <span class="required">*</span></label>
-                                    <input type="text" id="techStack" name="tech_stack" class="form-control" placeholder="e.g. Python, Flask, Oracle SQL, HTML/CSS" required>
+                                    <label for="techStack">Technologies &amp; Libraries Used <span class="required">*</span></label>
+                                    <input type="text" id="techStack" name="tech_stack" class="form-control" placeholder="e.g. Python, Flask, PostgreSQL, React" required>
                                 </div>
                                 <div class="form-group col">
-                                    <label for="projectLink">GitHub / Live Project URL</label>
+                                    <label for="projectLink">GitHub Repository or Live Demo URL</label>
                                     <input type="url" id="projectLink" name="project_link" class="form-control" placeholder="https://github.com/username/project">
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                <label for="projectDesc">Project Abstract / Description <span class="required">*</span></label>
-                                <textarea id="projectDesc" name="description" class="form-control" rows="5" placeholder="Describe problem statement, features, architecture..." required></textarea>
+                                <label for="projectDesc">Executive Summary / Abstract <span class="required">*</span></label>
+                                <textarea id="projectDesc" name="description" class="form-control" rows="5" placeholder="Detail the problem statement, proposed methodology, modules implemented, and conclusions..." required></textarea>
                             </div>
 
                             <div class="form-group">
-                                <label for="projectDoc">Project Synopsis / Report (PDF / ZIP) <span class="required">*</span></label>
+                                <label for="projectDoc">Project Synopsis / Report (PDF or ZIP) <span class="required">*</span></label>
                                 <input type="file" id="projectDoc" name="document" class="form-control file-input" accept=".pdf,.zip,.doc,.docx" required>
-                                <small class="text-muted">Max file size: 15MB. Accepted formats: PDF, ZIP, DOCX</small>
+                                <small class="text-muted">Maximum file size: 15MB. Formats accepted: PDF, ZIP, DOCX</small>
                             </div>
 
                             <div class="form-actions-right">
                                 <button type="reset" class="btn btn-secondary">Clear</button>
-                                <button type="submit" class="btn btn-primary">&#128228; Submit for Approval</button>
+                                <button type="submit" class="btn btn-primary">&#128228; Submit for Review</button>
                             </div>
                         </form>
                     </div>
                 </section>
 
-                <!-- 3. MY PROJECTS -->
+                <!-- ================= 3. MY PROJECTS ================= -->
                 <section id="myProjectsSection" class="content-section">
                     <div class="panel-card">
                         <div class="panel-header">
-                            <h3>My Submitted Projects</h3>
+                            <h3>Detailed Project Submissions</h3>
                         </div>
 
                         <div class="projects-container">
@@ -212,49 +219,60 @@
                                         <div class="project-card-header">
                                             <div>
                                                 <h4>{{ p.title }}</h4>
-                                                <span class="project-date">Submitted: {{ p.submitted_at.strftime('%b %d, %Y') if p.submitted_at else 'Recent' }}</span>
+                                                <span class="project-date">Submitted on: {{ p.submitted_at.strftime('%b %d, %Y') if p.submitted_at else 'Recent' }}</span>
                                             </div>
                                             <span class="status-badge status-{{ p.status | lower }}">{{ p.status }}</span>
                                         </div>
                                         <p class="project-text">{{ p.description }}</p>
+                                        
                                         <div class="tech-tags">
                                             <span class="tag">{{ p.tech_stack }}</span>
                                         </div>
+
+                                        <div class="project-links-bar">
+                                            {% if p.project_link %}
+                                                <a href="{{ p.project_link }}" target="_blank" class="btn-link">&#128279; View Repository / URL</a>
+                                            {% endif %}
+                                            {% if p.document_path %}
+                                                <a href="{{ url_for('download_file', filename=p.document_path) }}" class="btn-link">&#128196; Download Uploaded Report</a>
+                                            {% endif %}
+                                        </div>
                                         
+                                        <!-- Faculty Review Evaluation Box -->
                                         {% if p.status == 'APPROVED' or p.status == 'REJECTED' %}
                                             <div class="review-box">
                                                 <div class="review-header">
                                                     <strong>Faculty Evaluation:</strong>
                                                     <span class="rating-stars">&#9733; {{ p.rating }} / 5.0</span>
                                                 </div>
-                                                <p class="review-feedback">"{{ p.feedback }}" - <em>{{ p.reviewer_name or 'Faculty Evaluator' }}</em></p>
+                                                <p class="review-feedback">"{{ p.feedback }}" &mdash; <em>{{ p.reviewer_name or 'Faculty Guide' }}</em></p>
                                             </div>
                                         {% else %}
-                                            <div class="review-box pending-box">
-                                                <p class="text-muted">&#9203; Awaiting faculty review. Feedback and ratings will appear here once reviewed.</p>
+                                            <div class="review-box">
+                                                <p class="text-muted">&#9203; Currently queued for faculty evaluation. Marks and feedback will appear here once reviewed.</p>
                                             </div>
                                         {% endif %}
                                     </div>
                                 {% endfor %}
                             {% else %}
-                                <p class="text-muted" style="text-align: center; padding: 2rem;">No projects submitted yet.</p>
+                                <p class="text-muted" style="text-align: center; padding: 3rem;">No submissions found.</p>
                             {% endif %}
                         </div>
                     </div>
                 </section>
 
-                <!-- 4. PROFILE SECTION -->
+                <!-- ================= 4. PROFILE SECTION ================= -->
                 <section id="profileSection" class="content-section">
                     <div class="panel-card">
                         <div class="panel-header">
-                            <h3>Student Profile Details</h3>
+                            <h3>Academic Student Profile</h3>
                         </div>
 
                         <div class="profile-layout">
                             <div class="profile-card-left">
                                 <div class="profile-avatar-large">{{ student.full_name[:2].upper() if student.full_name else 'ST' }}</div>
                                 <h3>{{ student.full_name }}</h3>
-                                <p class="text-muted">Roll: {{ student.roll_no }}</p>
+                                <p class="user-roll">Roll: {{ student.roll_no }}</p>
                                 <span class="badge-role">Student</span>
                             </div>
 
@@ -265,15 +283,15 @@
                                         <p>{{ student.username }}</p>
                                     </div>
                                     <div class="profile-field">
-                                        <label>Email Address</label>
+                                        <label>Institutional Email</label>
                                         <p>{{ student.email }}</p>
                                     </div>
                                     <div class="profile-field">
-                                        <label>Phone Number</label>
+                                        <label>Contact Number</label>
                                         <p>{{ student.phone_no }}</p>
                                     </div>
                                     <div class="profile-field">
-                                        <label>Course / Branch</label>
+                                        <label>Department / Course</label>
                                         <p>{{ student.course }}</p>
                                     </div>
                                     <div class="profile-field">

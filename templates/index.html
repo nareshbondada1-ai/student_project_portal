@@ -3,23 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Project Portal</title>
+    <title>Student Project Portal - Academic Management System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </head>
 <body>
 
     <!-- Navigation Bar -->
     <header class="navbar">
         <div class="nav-container">
-            <div class="logo">
-                <span class="logo-icon">&#128218;</span>
-                <span class="logo-text">Student Project Portal</span>
-            </div>
-            <div class="nav-links">
-                <a href="#about" class="nav-link">About</a>
-                <a href="#guidelines" class="nav-link">Guidelines</a>
-            </div>
+            <a href="/" class="logo">
+                <span class="logo-badge">&#9878;</span>
+                <span class="logo-text">Academic<span>Portal</span></span>
+            </a>
+            <span class="nav-tagline">Official Student Project Review System</span>
         </div>
     </header>
 
@@ -29,12 +25,14 @@
             
             <!-- Left Info Panel -->
             <div class="info-section">
-                <h1>Manage &amp; Review Academic Projects</h1>
-                <p>A unified platform for students to submit projects and professors to review, approve, and rate academic submissions seamlessly.</p>
+                <span class="gold-pill">&#10022; Centralized Academic System</span>
+                <h1>Submit &amp; Review <span>Student Projects</span></h1>
+                <p>A unified portal enabling students to submit their minor/major project synopses, while faculty members evaluate, grade, and approve submissions seamlessly.</p>
+                
                 <ul class="feature-list">
-                    <li>&#10004; Submit and track project approvals in real-time</li>
-                    <li>&#10004; Faculty grading, ratings &amp; feedback</li>
-                    <li>&#10004; Secure role-based portal for Students &amp; Faculty</li>
+                    <li><span class="feature-icon">&#10004;</span> Track approval and grading status in real-time</li>
+                    <li><span class="feature-icon">&#10004;</span> Faculty scoring, rubric ratings &amp; feedback</li>
+                    <li><span class="feature-icon">&#10004;</span> Secure, role-segregated access for students &amp; guides</li>
                 </ul>
             </div>
 
@@ -44,10 +42,10 @@
                 <!-- FLASH ERROR / SUCCESS MESSAGES -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
-                        <div class="flash-messages" style="margin-bottom: 1rem;">
+                        <div class="flash-messages">
                             {% for category, message in messages %}
-                                <div class="alert alert-{{ category }}" style="padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 0.5rem; background: #fee2e2; color: #991b1b; font-size: 0.9rem; font-weight: 500;">
-                                    <span>&#9888; {{ message }}</span>
+                                <div class="alert alert-{{ category }}">
+                                    <span>{{ message }}</span>
                                 </div>
                             {% endfor %}
                         </div>
@@ -56,8 +54,8 @@
 
                 <!-- Main Tabs: Login vs Register -->
                 <div class="main-tabs">
-                    <button type="button" class="main-tab-btn active" id="tabLoginBtn" onclick="switchMainTab('login')">Login</button>
-                    <button type="button" class="main-tab-btn" id="tabRegisterBtn" onclick="switchMainTab('register')">Register</button>
+                    <button type="button" class="main-tab-btn active" id="tabLoginBtn" onclick="switchMainTab('login')">Sign In</button>
+                    <button type="button" class="main-tab-btn" id="tabRegisterBtn" onclick="switchMainTab('register')">Register Account</button>
                 </div>
 
                 <!-- ================= LOGIN SECTION ================= -->
@@ -65,8 +63,8 @@
                     
                     <!-- Sub-Tabs: Student vs Admin Login -->
                     <div class="role-tabs">
-                        <button type="button" class="role-tab-btn active" id="studentLoginTab" onclick="switchLoginRole('STUDENT')">Student Login</button>
-                        <button type="button" class="role-tab-btn" id="adminLoginTab" onclick="switchLoginRole('ADMIN')">Admin / Professor</button>
+                        <button type="button" class="role-tab-btn active" id="studentLoginTab" onclick="switchLoginRole('STUDENT')">&#127891; Student Portal</button>
+                        <button type="button" class="role-tab-btn" id="adminLoginTab" onclick="switchLoginRole('ADMIN')">&#9878; Faculty / Guide</button>
                     </div>
 
                     <form id="loginForm" action="/login" method="POST">
@@ -74,19 +72,22 @@
 
                         <div class="form-group">
                             <label for="loginIdentifier">Username or Email</label>
-                            <input type="text" id="loginIdentifier" name="identifier" class="form-control" placeholder="Enter username or email" required>
+                            <input type="text" id="loginIdentifier" name="identifier" class="form-control" placeholder="Enter your registered username or email" required>
                         </div>
 
                         <div class="form-group">
                             <label for="loginPassword">Password</label>
-                            <input type="password" id="loginPassword" name="password" class="form-control" placeholder="Enter password" required>
+                            <div class="password-wrapper">
+                                <input type="password" id="loginPassword" name="password" class="form-control" placeholder="Enter password" required>
+                                <button type="button" class="toggle-pwd-btn" onclick="togglePasswordVisibility('loginPassword', this)">&#128065;</button>
+                            </div>
                         </div>
 
                         <div class="form-actions">
-                            <a href="#" class="forgot-link">Forgot Password?</a>
+                            <a href="#" class="forgot-link">Need help signing in?</a>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">Login as Student</button>
+                        <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">Sign In as Student</button>
                     </form>
                 </div>
 
@@ -101,7 +102,7 @@
                                     <input type="radio" name="role" value="STUDENT" checked onchange="toggleStudentFields(this.value)"> Student
                                 </label>
                                 <label class="radio-label">
-                                    <input type="radio" name="role" value="ADMIN" onchange="toggleStudentFields(this.value)"> Admin / Professor
+                                    <input type="radio" name="role" value="ADMIN" onchange="toggleStudentFields(this.value)"> Faculty / Guide
                                 </label>
                             </div>
                         </div>
@@ -119,8 +120,8 @@
 
                         <div class="form-row">
                             <div class="form-group col">
-                                <label for="regEmail">Email <span class="required">*</span></label>
-                                <input type="email" id="regEmail" name="email" class="form-control" placeholder="john@example.com" required>
+                                <label for="regEmail">Email Address <span class="required">*</span></label>
+                                <input type="email" id="regEmail" name="email" class="form-control" placeholder="john@college.edu" required>
                             </div>
                             <div class="form-group col">
                                 <label for="regPhone">Phone Number <span class="required">*</span></label>
@@ -130,18 +131,21 @@
 
                         <div class="form-group">
                             <label for="regPassword">Set Password <span class="required">*</span></label>
-                            <input type="password" id="regPassword" name="password" class="form-control" placeholder="Minimum 6 characters" minlength="6" required>
+                            <div class="password-wrapper">
+                                <input type="password" id="regPassword" name="password" class="form-control" placeholder="Minimum 6 characters" minlength="6" required>
+                                <button type="button" class="toggle-pwd-btn" onclick="togglePasswordVisibility('regPassword', this)">&#128065;</button>
+                            </div>
                         </div>
 
                         <!-- Student-Only Field: Roll Number -->
                         <div class="form-group" id="rollNoGroup">
-                            <label for="regRollNo">Student Roll No <span class="required">*</span></label>
+                            <label for="regRollNo">Student Roll Number <span class="required">*</span></label>
                             <input type="text" id="regRollNo" name="roll_no" class="form-control" placeholder="e.g. 21BCE1024" required>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group col">
-                                <label for="regCourse" id="courseLabel">Course <span class="required">*</span></label>
+                                <label for="regCourse" id="courseLabel">Course / Branch <span class="required">*</span></label>
                                 <input type="text" id="regCourse" name="course" class="form-control" placeholder="e.g. B.Tech CSE" required>
                             </div>
                             <div class="form-group col">
@@ -163,11 +167,11 @@
                         <div class="form-group checkbox-group">
                             <label class="checkbox-label">
                                 <input type="checkbox" name="terms_accepted" value="Y" required>
-                                <span>I agree to the <a href="#">Terms &amp; Conditions</a></span>
+                                <span>I agree to the <a href="#">Academic Code of Conduct</a></span>
                             </label>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+                        <button type="submit" class="btn btn-primary btn-block">Create Portal Account</button>
                     </form>
                 </div>
 
@@ -175,5 +179,6 @@
         </div>
     </main>
 
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

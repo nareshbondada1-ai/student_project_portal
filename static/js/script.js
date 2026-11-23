@@ -30,11 +30,11 @@ function switchLoginRole(role) {
     if (role === "STUDENT") {
         studentBtn.classList.add("active");
         adminBtn.classList.remove("active");
-        loginSubmitBtn.textContent = "Login as Student";
+        loginSubmitBtn.textContent = "Sign In as Student";
     } else {
         adminBtn.classList.add("active");
         studentBtn.classList.remove("active");
-        loginSubmitBtn.textContent = "Login as Admin / Professor";
+        loginSubmitBtn.textContent = "Sign In as Faculty / Guide";
     }
 }
 
@@ -51,6 +51,20 @@ function toggleStudentFields(role) {
     } else {
         rollNoGroup.style.display = "block";
         regRollNo.setAttribute("required", "required");
-        courseLabel.innerHTML = 'Course <span class="required">*</span>';
+        courseLabel.innerHTML = 'Course / Branch <span class="required">*</span>';
+    }
+}
+
+// Toggle Password Show/Hide with Eye Icon
+function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    if (input.type === "password") {
+        input.type = "text";
+        btn.innerHTML = "&#128064;"; // Closed eye / looking
+    } else {
+        input.type = "password";
+        btn.innerHTML = "&#128065;"; // Open eye
     }
 }
